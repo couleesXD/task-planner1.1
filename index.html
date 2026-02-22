@@ -13,7 +13,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('SW registered'))
                     .catch(err => console.log('SW failed'));
             });
@@ -24,6 +24,7 @@
         :root {
             --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --header-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --header-gradient-dark: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
             --card-bg: rgba(20, 25, 40, 0.95);
             --glass-bg: rgba(255,255,255,0.1);
             --glass-light: rgba(255,255,255,0.2);
@@ -51,6 +52,7 @@
         body.dark-theme {
             --bg-gradient: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
             --card-bg: rgba(10, 15, 30, 0.98);
+            --header-gradient-dark: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
         }
 
         .container {
@@ -65,6 +67,7 @@
 
         .header {
             background: var(--header-gradient);
+            transition: all 0.3s ease !important;
             padding: 25px 30px;
             text-align: center;
             color: white;
@@ -73,15 +76,18 @@
         }
 
         .header h1 {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-size: clamp(1.5em, 5vw, 2.2em) !important;
+            margin-bottom: 10px !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.2 !important;
+            transition: all 0.3s ease !important;
         }
 
         #headerTitleDark {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            font-size: clamp(1.5em, 5vw, 2.2em) !important; /* Тот же размер */
         }
 
         .counter {
@@ -644,12 +650,42 @@
             .datetime-container { top: 15px; right: 15px; }
             .time-display { font-size: 1.8em; }
             .task-item { padding: 20px; margin-bottom: 15px; }
+             .notification-label {
+                font-size: 1em !important;  /* Было 1.2em → стало 1em */
+            }
+            
+            .notification-status {
+                font-size: 0.85em !important;     /* Компактнее */
+                padding: 6px 12px !important;     /* Меньше отступы */
+                min-width: 55px !important;       /* Уменьшили ширину */
+                min-height: 28px !important;      /* Фиксированная высота */
+            }
+            
+            .notification-box {
+                height: 55px !important;          /* Меньше высота */
+                padding: 15px 20px !important;    /* Компактнее */
+                gap: 20px !important;             /* Меньше промежуток */
+            }
         }
 
         @media (min-width: 1400px) {
             .desktop-view { gap: 30px; }
             .column { min-height: 500px; }
         }
+
+        @media (max-width: 768px) {
+            .datetime-container {
+                display: none !important; /* Скрываем часы на мобиле */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1, #headerTitleDark {
+                font-size: clamp(1.3em, 6vw, 1.8em) !important;
+                padding: 0 40px !important;
+            }
+        }
+
     </style>
 </head>
 
