@@ -899,36 +899,41 @@
                         li.querySelector('.delete-btn').addEventListener('click', () => deleteTask(index));
                         li.addEventListener('dragstart', dragStart);
                         li.addEventListener('dragend', dragEnd);
-                        
+
                         const columns = { high: 'highTasks', medium: 'mediumTasks', low: 'lowTasks' };
                         getElement(columns[task.priority || 'medium']).appendChild(li);
                     });
                     initDragAndDrop();
                 }
             },
+
             mobile: {
                 render(tasks) {
                     const mobileTasks = getElement('mobileTasks');
                     mobileTasks.innerHTML = '';
+
                     if (tasks.length === 0) {
                         mobileTasks.innerHTML = '<li style="color:#888;text-align:center;padding:40px 20px">📭 Нет задач</li>';
                         return;
                     }
                     tasks.forEach((task, index) => {
+                        const originalIndex = tasks.findIndex(t => 
+                            t.text === task.text && t.priority === task.priority
+                        );
                         const li = document.createElement('li');
                         li.className = `task-item priority-${task.priority || 'medium'} ${task.completed ? 'completed' : ''}`;
-                        li.dataset.taskIndex = index;
+                        li.dataset.taskIndex = originalIndex; // Оригинальный индекс для delete/toggle
                         li.innerHTML = `
                             <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
                             <span class="task-text">${task.text}</span>
                             <button class="delete-btn">✕</button>
                         `;
-                        li.querySelector('.task-checkbox').addEventListener('change', () => toggleTask(index));
-                        li.querySelector('.delete-btn').addEventListener('click', () => deleteTask(index));
+                        li.querySelector('.task-checkbox').addEventListener('change', () => toggleTask(originalIndex));
+                        li.querySelector('.delete-btn').addEventListener('click', () => deleteTask(originalIndex));
                         mobileTasks.appendChild(li);
                     });
                 }
-            }
+
         };
 
         // 🖱️ DRAG & DROP
@@ -960,11 +965,29 @@
 
         // ✅ ОСНОВНЫЕ ФУНКЦИИ
         function renderTasks() {
-            const mode = detectDeviceMode();
-            renderers[mode].render(tasks);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            updateCounters();
+        const mode = detectDeviceMode();
+
+        // 🔥 ФИКС 1: Выполненные задачи ВНИЗ
+        const sortedTasks = [...tasks].sort((a, b) => {
+            // Сначала НЕвыполненные, потом выполненные
+            if (a.completed !== b.completed) {
+                return a.completed - b.completed;
+            }
+            return 0;
+        });
+
+        // 🔥 ФИКС 2: Мобильная сортировка по важности
+        if (mode === 'mobile') {
+            sortedTasks.sort((a, b) => {
+                const priorityOrder = { high: 3, medium: 2, low: 1 };
+                return priorityOrder[b.priority || 'medium'] - priorityOrder[a.priority || 'medium'];
+            });
         }
+
+        renderers[mode].render(sortedTasks);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        updateCounters();
+    }
 
         function updateCounters() {
             getElement('total').textContent = tasks.length;
